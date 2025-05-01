@@ -96,8 +96,6 @@ def preprocess_image(image):
     return img_array
 
 # --- Streamlit UI ---
-st.title("🌿  GreenBuddy ")
-st.write("Upload a leaf image and I'll predict the disease!")
 
 uploaded_file = st.file_uploader("Choose a leaf image...", type=["jpg", "jpeg", "png"])
 
