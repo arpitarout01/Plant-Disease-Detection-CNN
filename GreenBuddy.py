@@ -6,40 +6,14 @@ import numpy as np
 import os
 import requests
 
-def save_response_content(response, destination):
-    CHUNK_SIZE = 32768
-
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(CHUNK_SIZE):
-            if chunk:
-                f.write(chunk)
-
-def get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            return value
-    return None
-
-def download_file_from_google_drive(id, destination):
-    URL = "https://docs.google.com/uc?export=download"
-
-    session = requests.Session()
-    response = session.get(URL, params={'id': id}, stream=True)
-    token = get_confirm_token(response)
-
-    if token:
-        params = {'id': id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-
-    save_response_content(response, destination)
-
-MODEL_ID = '1KbOeGdErlQomgL9OirU2KpCFOdjbDeUs'  # Your Google Drive file ID
+MODEL_URL = 'https://huggingface.co/arpitarout01/Green_Buddy/resolve/main/plant_disease_detection_model.h5'  # Your Google Drive file ID
 MODEL_PATH = 'plant_disease_detection_model.h5'
 
 if not os.path.exists(MODEL_PATH):
     with st.spinner('Downloading model... (only once)'):
-        download_file_from_google_drive(MODEL_ID, MODEL_PATH)
-
+        r = requests.get(MODEL_URL)
+        with open(MODEL_PATH, 'wb') as f:
+            f.write(r.content)
 # --- Load the Keras model ---
 model = tf.keras.models.load_model(MODEL_PATH)
 
