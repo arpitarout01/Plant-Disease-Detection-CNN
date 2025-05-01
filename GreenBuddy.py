@@ -242,11 +242,6 @@ disease_info = {
     }
 }
 
-info = disease_info.get(predicted_class, {
-    'description': 'No specific description available.',
-    'treatment': 'Please consult an expert or local agri extension officer.'
-})
-
 # --- Preprocess uploaded image ---
 def preprocess_image(image):
     image = image.resize((128, 128))  # Change if needed
@@ -258,9 +253,9 @@ def preprocess_image(image):
 
 # --- Streamlit UI ---
 
-uploaded_file = st.file_uploader("Choose a leaf image...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Choose a leaf image...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
-if uploaded_file is not None:
+if uploaded_files is not None:
     for uploaded_file in uploaded_files:
         st.markdown("----")
         image = Image.open(uploaded_file)
@@ -271,11 +266,16 @@ if uploaded_file is not None:
             predictions = model.predict(processed_image)
             predicted_class = class_names[np.argmax(predictions)]
             confidence = np.max(predictions)
+            
 
     st.success(f"Prediction: **{predicted_class}** 🍃")
     st.info(f"🧠 Confidence Score: {confidence:.2%}")
 
-    info = disease_info[predicted_class]
+    info = disease_info.get(predicted_class, {
+            'description': 'No specific description available.',
+            'treatment': 'Please consult an expert or local agri extension officer.'
+    })
+
     st.markdown(f"**📝 Description:** {info['description']}")
     st.markdown(f"**💊 Treatment:** {info['treatment']}")
 
