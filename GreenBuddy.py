@@ -42,11 +42,17 @@ MODEL_PATH = 'plant_disease_detection_model.h5'
 if not os.path.exists(MODEL_PATH):
     with st.spinner('Downloading model... (only once)'):
         r = requests.get(MODEL_URL)
-        with open(MODEL_PATH, 'wb') as f:
-            f.write(r.content)
-# --- Load the Keras model ---
-model = tf.keras.models.load_model(MODEL_PATH)
-
+        if r.status_code == 200:
+            with open(MODEL_PATH, 'wb') as f:
+                f.write(r.content)
+        else:
+            st.error("❌ Failed to download the model file.")
+            st.stop()
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+except Exception as e:
+    st.error(f"❌ Error loading model: {e}")
+    st.stop()
 # --- Class names (edit as per your model) ---
 class_names=['Apple___Apple_scab',
  'Apple___Black_rot',
@@ -255,7 +261,7 @@ def preprocess_image(image):
 
 uploaded_files = st.file_uploader("Choose a leaf image...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
-if uploaded_files is not None:
+if uploaded_files :
     for uploaded_file in uploaded_files:
         st.markdown("----")
         image = Image.open(uploaded_file)
@@ -266,18 +272,16 @@ if uploaded_files is not None:
             predictions = model.predict(processed_image)
             predicted_class = class_names[np.argmax(predictions)]
             confidence = np.max(predictions)
-            
+            st.success(f"Prediction: **{predicted_class}** 🍃")
+            st.info(f"🧠 Confidence Score: {confidence:.2%}")
 
-    st.success(f"Prediction: **{predicted_class}** 🍃")
-    st.info(f"🧠 Confidence Score: {confidence:.2%}")
-
-    info = disease_info.get(predicted_class, {
+            info = disease_info.get(predicted_class, {
             'description': 'No specific description available.',
             'treatment': 'Please consult an expert or local agri extension officer.'
-    })
+            })
 
-    st.markdown(f"**📝 Description:** {info['description']}")
-    st.markdown(f"**💊 Treatment:** {info['treatment']}")
+            st.markdown(f"**📝 Description:** {info['description']}")
+            st.markdown(f"**💊 Treatment:** {info['treatment']}")
 
 st.markdown("---")
 st.markdown("<p style='text-align: center;'>Made with 💚 by <a href='https://github.com/arpitarout01' target='_blank'>Arpita Rout</a></p>", unsafe_allow_html=True)
