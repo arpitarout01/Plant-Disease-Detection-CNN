@@ -6,6 +6,36 @@ import numpy as np
 import os
 import requests
 
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #f4fff5;
+    }
+    h1 {
+        color: #2E8B57;
+        text-align: center;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        border-radius: 8px;
+        padding: 10px 20px;
+        transition: 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown("<h1>🌿 GreenBuddy</h1>", unsafe_allow_html=True)
+st.write("Upload a clear photo of a leaf, and this app will detect the plant disease using a deep learning model trained on plant pathology data. 🍃")
+
 MODEL_URL = 'https://huggingface.co/arpitarout01/Green_Buddy/resolve/main/plant_disease_detection_model.h5'  # Your Google Drive file ID
 MODEL_PATH = 'plant_disease_detection_model.h5'
 
@@ -75,10 +105,14 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption='Uploaded Image', use_column_width=True)
 
-    st.write("Predicting...")
-
-    processed_image = preprocess_image(image)
-    predictions = model.predict(processed_image)
-    predicted_class = class_names[np.argmax(predictions)]
+    with st.spinner("🔍 Analyzing leaf image..."):
+        processed_image = preprocess_image(image)
+        predictions = model.predict(processed_image)
+        predicted_class = class_names[np.argmax(predictions)]
+        confidence = np.max(predictions)
 
     st.success(f"Prediction: **{predicted_class}** 🍃")
+    st.info(f"🧠 Confidence Score: {confidence:.2%}")
+
+st.markdown("---")
+st.markdown("<p style='text-align: center;'>Made with 💚 by <a href='https://github.com/arpitarout01' target='_blank'>Arpita Rout</a></p>", unsafe_allow_html=True)
