@@ -39,20 +39,28 @@ st.write("Upload a clear photo of a leaf, and this app will detect the plant dis
 MODEL_URL = 'https://huggingface.co/arpitarout01/Green_Buddy/resolve/main/plant_disease_detection_model.h5'  # Your Google Drive file ID
 MODEL_PATH = 'plant_disease_detection_model.h5'
 
-if not os.path.exists(MODEL_PATH):
-    with st.spinner('Downloading model... (only once)'):
-        r = requests.get(MODEL_URL)
-        if r.status_code == 200:
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner('Downloading model... (only once)'):
+            r = requests.get(MODEL_URL, stream=True)
+            total = int(r.headers.get('content-length', 0))
+            downloaded = 0
             with open(MODEL_PATH, 'wb') as f:
-                f.write(r.content)
-        else:
-            st.error("❌ Failed to download the model file.")
-            st.stop()
+                for chunk in r.iter_content(1024):
+                    f.write(chunk)
+                    downloaded += len(chunk)
+            if downloaded < 10_000_000:  # corrupted file check
+                os.remove(MODEL_PATH)
+                st.error("Model download incomplete or corrupted.")
+                st.stop()
+
+download_model()
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
 except Exception as e:
-    st.error(f"❌ Error loading model: {e}")
+    st.error(f"Error loading model: {e}")
     st.stop()
+
 # --- Class names (edit as per your model) ---
 class_names=['Apple___Apple_scab',
  'Apple___Black_rot',
@@ -272,16 +280,15 @@ if uploaded_files :
             predictions = model.predict(processed_image)
             predicted_class = class_names[np.argmax(predictions)]
             confidence = np.max(predictions)
-            st.success(f"Prediction: **{predicted_class}** 🍃")
-            st.info(f"🧠 Confidence Score: {confidence:.2%}")
 
             info = disease_info.get(predicted_class, {
             'description': 'No specific description available.',
             'treatment': 'Please consult an expert or local agri extension officer.'
             })
-
-            st.markdown(f"**📝 Description:** {info['description']}")
-            st.markdown(f"**💊 Treatment:** {info['treatment']}")
+        st.success(f"Prediction: **{predicted_class}** 🍃")
+        st.info(f"🧠 Confidence Score: {confidence:.2%}")
+        st.markdown(f"**📝 Description:** {info['description']}")
+        st.markdown(f"**💊 Treatment:** {info['treatment']}")
 
 st.markdown("---")
 st.markdown("<p style='text-align: center;'>Made with 💚 by <a href='https://github.com/arpitarout01' target='_blank'>Arpita Rout</a></p>", unsafe_allow_html=True)
