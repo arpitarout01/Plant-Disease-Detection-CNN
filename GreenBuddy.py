@@ -266,29 +266,27 @@ def preprocess_image(image):
     return img_array
 
 # --- Streamlit UI ---
+uploaded_file = st.file_uploader("📷 Upload Leaf Image", type=["jpg", "png", "jpeg"])
 
-uploaded_files = st.file_uploader("Choose a leaf image...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert('RGB')
+    st.image(image, caption="Uploaded Leaf Image", use_column_width=True)
 
-if uploaded_files :
-    for uploaded_file in uploaded_files:
-        st.markdown("----")
-        image = Image.open(uploaded_file)
-        st.image(image, caption='🖼 Uploaded Image', use_column_width=True)
-        
-        with st.spinner("🔍 Analyzing leaf image..."):
+    if st.button("Predict Disease"):
+        with st.spinner("Analyzing..."):
             processed_image = preprocess_image(image)
-            predictions = model.predict(processed_image)
-            predicted_class = class_names[np.argmax(predictions)]
-            confidence = np.max(predictions)
+            prediction = model.predict(processed_image)
+            predicted_class = class_names[np.argmax(prediction)]
+            confidence = np.max(prediction)
 
-            info = disease_info.get(predicted_class, {
-            'description': 'No specific description available.',
-            'treatment': 'Please consult an expert or local agri extension officer.'
-            })
         st.success(f"Prediction: **{predicted_class}** 🍃")
         st.info(f"🧠 Confidence Score: {confidence:.2%}")
-        st.markdown(f"**📝 Description:** {info['description']}")
-        st.markdown(f"**💊 Treatment:** {info['treatment']}")
+
+        if predicted_class in disease_info:
+            st.markdown(f"**🩺 Description:** {disease_info[predicted_class]['description']}")
+            st.markdown(f"**💊 Treatment:** {disease_info[predicted_class]['treatment']}")
+        else:
+            st.warning("No additional information available for this class.")
 
 st.markdown("---")
 st.markdown("<p style='text-align: center;'>Made with 💚 by <a href='https://github.com/arpitarout01' target='_blank'>Arpita Rout</a></p>", unsafe_allow_html=True)
