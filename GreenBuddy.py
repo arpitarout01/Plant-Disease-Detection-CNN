@@ -266,27 +266,31 @@ def preprocess_image(image):
     return img_array
 
 # --- Streamlit UI ---
-uploaded_file = st.file_uploader("📷 Upload Leaf Image", type=["jpg", "png", "jpeg"])
+uploaded_file = st.file_uploader("📷 Upload Leaf Image")
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert('RGB')
-    st.image(image, caption="Uploaded Leaf Image", use_column_width=True)
+    suffix = Path(uploaded_file.name).suffix.lower()
+    if suffix not in [".jpg", ".jpeg", ".png"]:
+        st.error("Unsupported file type. Please upload a JPG or PNG image.")
+    else:
+        image = Image.open(uploaded_file).convert('RGB')
+        st.image(image, caption="Uploaded Leaf Image", use_column_width=True)
 
-    if st.button("Predict Disease"):
-        with st.spinner("Analyzing..."):
-            processed_image = preprocess_image(image)
-            prediction = model.predict(processed_image)
-            predicted_class = class_names[np.argmax(prediction)]
-            confidence = np.max(prediction)
+        if st.button("Predict Disease"):
+            with st.spinner("Analyzing..."):
+                processed_image = preprocess_image(image)
+                prediction = model.predict(processed_image)
+                predicted_class = class_names[np.argmax(prediction)]
+                confidence = np.max(prediction)
 
-        st.success(f"Prediction: **{predicted_class}** 🍃")
-        st.info(f"🧠 Confidence Score: {confidence:.2%}")
+            st.success(f"Prediction: **{predicted_class}** 🍃")
+            st.info(f"🧠 Confidence Score: {confidence:.2%}")
 
-        if predicted_class in disease_info:
-            st.markdown(f"**🩺 Description:** {disease_info[predicted_class]['description']}")
-            st.markdown(f"**💊 Treatment:** {disease_info[predicted_class]['treatment']}")
-        else:
-            st.warning("No additional information available for this class.")
+            if predicted_class in disease_info:
+                st.markdown(f"**🩺 Description:** {disease_info[predicted_class]['description']}")
+                st.markdown(f"**💊 Treatment:** {disease_info[predicted_class]['treatment']}")
+            else:
+                st.warning("No additional information available for this class.")
 
 st.markdown("---")
 st.markdown("<p style='text-align: center;'>Made with 💚 by <a href='https://github.com/arpitarout01' target='_blank'>Arpita Rout</a></p>", unsafe_allow_html=True)
