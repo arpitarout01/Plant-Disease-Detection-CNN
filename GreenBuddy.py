@@ -37,7 +37,7 @@ st.markdown(
 st.markdown("<h1>🌿 GreenBuddy</h1>", unsafe_allow_html=True)
 st.write("Upload a clear photo of a leaf, and this app will detect the plant disease using a deep learning model trained on plant pathology data. 🍃")
 
-MODEL_URL = 'https://huggingface.co/arpitarout01/Green_Buddy/resolve/main/plant_disease_detection_model.h5'  # Your Google Drive file ID
+MODEL_URL = 'https://huggingface.co/arpitarout01/Green_Buddy/resolve/main/plant_disease_detection_model.h5'  
 MODEL_PATH = 'plant_disease_detection_model.h5'
 
 def download_model():
